@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIAP 5 - Sistem Informasi Administrasi Piket SMPN 5</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --danger: #dc2626;
+            --info: #0284c7;
+            --purple: #9333ea;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 75px; }
+        
+        header { background: var(--primary); color: white; padding: 16px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        header h1 { font-size: 1.2rem; font-weight: 700; }
+        header p { font-size: 0.8rem; opacity: 0.9; }
+
+        .container { padding: 16px; max-width: 900px; margin: 0 auto; }
+        
+        .card { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card-title { font-weight: 600; margin-bottom: 12px; color: var(--primary); font-size: 1rem; }
+
+        .grid-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        @media(min-width: 600px) { .grid-stats { grid-template-columns: repeat(4, 1fr); } }
+        
+        .stat-box { background: var(--bg); border-radius: 8px; padding: 12px; text-align: center; border: 1px solid var(--border); }
+        .stat-num { font-size: 1.4rem; font-weight: bold; margin-top: 4px; }
+        .stat-label { font-size: 0.75rem; color: #64748b; }
+
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; border-top: 1px solid var(--border); z-index: 100; }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; font-size: 0.75rem; color: #64748b; cursor: pointer; border: none; background: none; }
+        .nav-item.active { color: var(--primary-light); font-weight: bold; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+        select, input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.9rem; }
+
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; background: var(--primary-light); color: white; margin-top: 8px; }
+        .btn-success { background: var(--success); }
+        .btn-outline { background: transparent; border: 1px solid var(--primary-light); color: var(--primary-light); }
+
+        .student-item { display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 8px; }
+        @media(min-width: 500px) { .student-item { flex-direction: row; justify-content: space-between; align-items: center; } }
+        
+        .status-btn-group { display: flex; gap: 4px; width: 100%; }
+        .status-btn { flex: 1; padding: 8px 0; border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem; font-weight: 600; background: var(--bg); cursor: pointer; }
+        
+        .status-btn.sel-H { background: var(--success); color: white; border-color: var(--success); }
+        .status-btn.sel-S { background: var(--warning); color: white; border-color: var(--warning); }
+        .status-btn.sel-I { background: var(--info); color: white; border-color: var(--info); }
+        .status-btn.sel-A { background: var(--danger); color: white; border-color: var(--danger); }
+        .status-btn.sel-T { background: var(--purple); color: white; border-color: var(--purple); }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+        th, td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+        th { background: var(--bg); }
+
+        .badge { padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; color: white; display: inline-block; }
+        .badge-H { background: var(--success); }
+        .badge-S { background: var(--warning); }
+        .badge-I { background: var(--info); }
+        .badge-A { background: var(--danger); }
+        .badge-T { background: var(--purple); }
+
+        footer { text-align: center; font-size: 0.75rem; color: #64748b; margin-top: 20px; padding: 10px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>SIAP 5</h1>
+        <p>Sistem Informasi Administrasi Piket - SMPN 5</p>
+    </header>
+
+    <div class="container">
+        <!-- TAB 1: DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content active">
+            <div class="card">
+                <div class="card-title">Informasi Piket Hari Ini</div>
+                <p style="font-size: 0.85rem;" id="dash-date">Hari, Tanggal: -</p>
+                <p style="font-size: 0.85rem; margin-top: 4px;">Guru Piket Bertugas: <strong id="dash-guru">-</strong></p>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Ringkasan Kehadiran</div>
+                <div class="grid-stats">
+                    <div class="stat-box"><div class="stat-label">Kelas Checked</div><div class="stat-num" id="st-kelas">0/0</div></div>
+                    <div class="stat-box"><div class="stat-label">Hadir</div><div class="stat-num" style="color:var(--success)" id="st-H">0</div></div>
+                    <div class="stat-box"><div class="stat-label">Sakit / Izin</div><div class="stat-num" style="color:var(--warning)" id="st-SI">0</div></div>
+                    <div class="stat-box"><div class="stat-label">Alpa / Terlambat</div><div class="stat-num" style="color:var(--danger)" id="st-AT">0</div></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Status Pemeriksaan Kelas</div>
+                <ul id="unchecked-class-list" style="font-size: 0.85rem; padding-left: 18px;"></ul>
+            </div>
+        </section>
+
+        <!-- TAB 2: ABSENSI -->
+        <section id="tab-absensi" class="tab-content">
+            <div class="card">
+                <div class="card-title">Pencatatan Absensi Siswa</div>
+                <div class="form-group">
+                    <label>Pilih Kelas</label>
+                    <select id="sel-kelas" onchange="loadStudentList()"><option value="">-- Pilih Kelas --</option></select>
+                </div>
+                <button class="btn btn-outline" onclick="markAllHadir()">Tandai Semua Hadir</button>
+            </div>
+
+            <div class="card" id="student-container" style="display:none;">
+                <div class="card-title">Daftar Siswa Kelas</div>
+                <div class="form-group">
+                    <input type="text" id="search-siswa" placeholder="Cari Nama atau NIS..." onkeyup="filterStudentList()">
+                </div>
+                <div id="student-list"></div>
+                <button class="btn btn-success" style="margin-top:16px;" onclick="submitAbsensi()">SIMPAN ABSENSI</button>
+            </div>
+        </section>
+
+        <!-- TAB 3: RIWAYAT -->
+        <section id="tab-riwayat" class="tab-content">
+            <div class="card">
+                <div class="card-title">Riwayat Catatan Absensi</div>
+                <div class="form-group">
+                    <label>Pilih Tanggal</label>
+                    <input type="date" id="filter-date" onchange="renderRiwayat()">
+                </div>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr><th>Nama</th><th>Kelas</th><th>Status</th><th>Keterangan</th><th>Guru Piket</th></tr>
+                        </thead>
+                        <tbody id="tb-riwayat"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: LAPORAN -->
+        <section id="tab-laporan" class="tab-content">
+            <div class="card">
+                <div class="card-title">Laporan & Unduh Data</div>
+                <p style="font-size: 0.85rem; margin-bottom: 12px; color: #64748b;">Ekspor data absensi ke format Spreadsheet / CSV atau cetak dokumen langsung.</p>
+                <button class="btn" onclick="exportCSV()">Unduh File CSV (.csv)</button>
+                <button class="btn btn-outline" onclick="window.print()">Cetak / Simpan PDF</button>
+            </div>
+        </section>
+
+        <!-- TAB 5: PENGATURAN -->
+        <section id="tab-pengaturan" class="tab-content">
+            <div class="card">
+                <div class="card-title">Identitas Guru Piket</div>
+                <div class="form-group">
+                    <label>Pilih Nama Guru Piket</label>
+                    <select id="sel-guru" onchange="setGuruPiket()"><option value="">-- Pilih Nama Guru --</option></select>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Koneksi Database Spreadsheet</div>
+                <div class="form-group">
+                    <label>URL Web App Google Apps Script</label>
+                    <input type="text" id="gas-url" placeholder="https://script.google.com/macros/s/.../exec">
+                </div>
+                <button class="btn" onclick="saveGASUrl()">Simpan URL & Sinkronkan</button>
+                <button class="btn btn-outline" onclick="resetToDemo()" style="margin-top:8px;">Gunakan Mode DEMO Lokal</button>
+            </div>
+            <div class="card">
+                <div class="card-title">Informasi Sistem</div>
+                <p style="font-size: 0.8rem; color: #64748b;">SIAP 5 (Sistem Informasi Administrasi Piket)<br>Sekolah: SMPN 5<br>Pengembang: M. Ardi</p>
+            </div>
+        </section>
+
+        <footer>
+            Dikembangkan oleh <strong>M. Ardi</strong>
+        </footer>
+    </div>
+
+    <!-- NAVIGASI BAWAH FOR MOBILE -->
+    <nav class="nav-bottom">
+        <button class="nav-item active" onclick="switchTab('dashboard', this)">Dashboard</button>
+        <button class="nav-item" onclick="switchTab('absensi', this)">Absensi</button>
+        <button class="nav-item" onclick="switchTab('riwayat', this)">Riwayat</button>
+        <button class="nav-item" onclick="switchTab('laporan', this)">Laporan</button>
+        <button class="nav-item" onclick="switchTab('pengaturan', this)">Pengaturan</button>
+    </nav>
+
+    <script>
+        const DEMO_DATA = {
+            siswa: [
+                { NIS: '2026001', Nama: 'Ahmad Rizky', Kelas: '7A' },
+                { NIS: '2026002', Nama: 'Annisa Fitri', Kelas: '7A' },
+                { NIS: '2026003', Nama: 'Budi Santoso', Kelas: '7A' },
+                { NIS: '2026004', Nama: 'Citra Dewi', Kelas: '7B' },
+                { NIS: '2026005', Nama: 'Doni Pratama', Kelas: '7B' }
+            ],
+            kelas: [
+                { KodeKelas: 'K7A', NamaKelas: '7A', WaliKelas: 'Drs. Herman, M.Pd.' },
+                { KodeKelas: 'K7B', NamaKelas: '7B', WaliKelas: 'Siti Rahma, S.Pd.' }
+            ],
+            guru: [
+                { IDGuru: 'G01', NamaGuru: 'M. Ardi, S.Kom.' },
+                { IDGuru: 'G02', NamaGuru: 'Hj. Nurhayati, S.Pd.' }
+            ]
+        };
+
+        let db = { siswa: [], kelas: [], guru: [], absensi: [] };
+        let activeGuru = localStorage.getItem('siap_guru') || '';
+        let activeState = {};
+
+        window.onload = function() {
+            document.getElementById('dash-date').innerText = "Hari, Tanggal: " + new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('filter-date').value = new Date().toISOString().split('T')[0];
+            initData();
+        };
+
+        function initData() {
+            let localAbs = localStorage.getItem('siap_absensi');
+            db.absensi = localAbs ? JSON.parse(localAbs) : [];
+            
+            let gasUrl = localStorage.getItem('siap_gas_url');
+            if(gasUrl) {
+                document.getElementById('gas-url').value = gasUrl;
+                fetch(gasUrl + '?action=getInitialData')
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.status === 'success') {
+                            db.siswa = data.siswa;
+                            db.kelas = data.kelas;
+                            db.guru = data.guru;
+                            if(data.absensi && data.absensi.length > 0) db.absensi = data.absensi;
+                            renderAll();
+                        }
+                    }).catch(() => loadDemoData());
+            } else {
+                loadDemoData();
+            }
+        }
+
+        function loadDemoData() {
+            db.siswa = DEMO_DATA.siswa;
+            db.kelas = DEMO_DATA.kelas;
+            db.guru = DEMO_DATA.guru;
+            renderAll();
+        }
+
+        function renderAll() {
+            populateSelects();
+            renderDashboard();
+            renderRiwayat();
+        }
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            if(el) el.classList.add('active');
+        }
+
+        function populateSelects() {
+            let selKelas = document.getElementById('sel-kelas');
+            selKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+            db.kelas.forEach(k => selKelas.innerHTML += `<option value="${k.NamaKelas}">${k.NamaKelas}</option>`);
+
+            let selGuru = document.getElementById('sel-guru');
+            selGuru.innerHTML = '<option value="">-- Pilih Nama Guru --</option>';
+            db.guru.forEach(g => {
+                let selected = g.NamaGuru === activeGuru ? 'selected' : '';
+                selGuru.innerHTML += `<option value="${g.NamaGuru}" ${selected}>${g.NamaGuru}</option>`;
+            });
+            document.getElementById('dash-guru').innerText = activeGuru || "Belum dipilih (Atur di Pengaturan)";
+        }
+
+        function setGuruPiket() {
+            activeGuru = document.getElementById('sel-guru').value;
+            localStorage.setItem('siap_guru', activeGuru);
+            document.getElementById('dash-guru').innerText = activeGuru || "Belum dipilih";
+        }
+
+        function renderDashboard() {
+            let today = new Date().toISOString().split('T')[0];
+            let todayAbs = db.absensi.filter(a => a.Tanggal === today);
+            
+            let checkedClasses = [...new Set(todayAbs.map(a => a.Kelas))];
+            document.getElementById('st-kelas').innerText = `${checkedClasses.length}/${db.kelas.length}`;
+
+            let counts = { H: 0, S: 0, I: 0, A: 0, T: 0 };
+            todayAbs.forEach(a => { if(counts[a.Status] !== undefined) counts[a.Status]++; });
+
+            document.getElementById('st-H').innerText = counts.H;
+            document.getElementById('st-SI').innerText = counts.S + counts.I;
+            document.getElementById('st-AT').innerText = counts.A + counts.T;
+
+            let uncheckedList = document.getElementById('unchecked-class-list');
+            uncheckedList.innerHTML = '';
+            db.kelas.forEach(k => {
+                if(!checkedClasses.includes(k.NamaKelas)) {
+                    uncheckedList.innerHTML += `<li style="color:var(--danger); margin-bottom:4px;">Kelas ${k.NamaKelas} (Belum Diperiksa)</li>`;
+                }
+            });
+            if(uncheckedList.innerHTML === '') uncheckedList.innerHTML = '<li style="color:var(--success)">Semua kelas sudah diperiksa hari ini!</li>';
+        }
+
+        function loadStudentList() {
+            let kls = document.getElementById('sel-kelas').value;
+            let container = document.getElementById('student-container');
+            let list = document.getElementById('student-list');
+            
+            if(!kls) { container.style.display = 'none'; return; }
+            
+            container.style.display = 'block';
+            list.innerHTML = '';
+            activeState = {};
+
+            let filtered = db.siswa.filter(s => s.Kelas === kls);
+            filtered.forEach(s => {
+                activeState[s.NIS] = { status: 'H', ket: '' };
+                list.innerHTML += `
+                    <div class="student-item" data-name="${s.Nama.toLowerCase()}" data-nis="${s.NIS}">
+                        <div><strong>${s.Nama}</strong> <br><small style="color:#64748b">NIS: ${s.NIS}</small></div>
+                        <div>
+                            <div class="status-btn-group">
+                                <button class="status-btn sel-H" onclick="setStatus('${s.NIS}', 'H', this)">H</button>
+                                <button class="status-btn" onclick="setStatus('${s.NIS}', 'S', this)">S</button>
+                                <button class="status-btn" onclick="setStatus('${s.NIS}', 'I', this)">I</button>
+                                <button class="status-btn" onclick="setStatus('${s.NIS}', 'A', this)">A</button>
+                                <button class="status-btn" onclick="setStatus('${s.NIS}', 'T', this)">T</button>
+                            </div>
+                            <input type="text" placeholder="Keterangan (opsional)..." style="margin-top:4px; font-size:0.75rem; padding:4px;" onchange="setKet('${s.NIS}', this.value)">
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function setStatus(nis, status, el) {
+            activeState[nis].status = status;
+            let btns = el.parentElement.querySelectorAll('.status-btn');
+            btns.forEach(b => b.className = 'status-btn');
+            el.classList.add('sel-' + status);
+        }
+
+        function setKet(nis, val) { activeState[nis].ket = val; }
+
+        function markAllHadir() {
+            for(let nis in activeState) { activeState[nis].status = 'H'; }
+            loadStudentList();
+        }
+
+        function filterStudentList() {
+            let q = document.getElementById('search-siswa').value.toLowerCase();
+            document.querySelectorAll('.student-item').forEach(item => {
+                let name = item.getAttribute('data-name');
+                let nis = item.getAttribute('data-nis');
+                item.style.display = (name.includes(q) || nis.includes(q)) ? 'flex' : 'none';
+            });
+        }
+
+        function submitAbsensi() {
+            if(!activeGuru) { alert("Pilih nama Guru Piket terlebih dahulu di menu Pengaturan!"); return; }
+            let kls = document.getElementById('sel-kelas').value;
+            if(!confirm(`Simpan absensi kelas ${kls}?`)) return;
+
+            let today = new Date().toISOString().split('T')[0];
+            let time = new Date().toLocaleTimeString('id-ID');
+            let records = [];
+
+            db.siswa.filter(s => s.Kelas === kls).forEach(s => {
+                let state = activeState[s.NIS] || { status: 'H', ket: '' };
+                records.push({
+                    idCatatan: `ABS-${today}-${s.NIS}`,
+                    tanggal: today,
+                    waktu: time,
+                    kelas: kls,
+                    nis: s.NIS,
+                    nama: s.Nama,
+                    status: state.status,
+                    keterangan: state.ket,
+                    guruPiket: activeGuru
+                });
+            });
+
+            db.absensi = db.absensi.filter(a => !(a.Tanggal === today && a.Kelas === kls));
+            records.forEach(r => db.absensi.push({
+                IDCatatan: r.idCatatan, Tanggal: r.tanggal, Waktu: r.waktu, Kelas: r.kelas,
+                NIS: r.nis, Nama: r.nama, Status: r.status, Keterangan: r.keterangan, GuruPiket: r.guruPiket
+            }));
+            localStorage.setItem('siap_absensi', JSON.stringify(db.absensi));
+
+            let gasUrl = localStorage.getItem('siap_gas_url');
+            if(gasUrl) {
+                fetch(gasUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ action: 'saveAbsensi', records: records })
+                });
+            }
+
+            alert("Data absensi berhasil disimpan!");
+            renderDashboard();
+            renderRiwayat();
+            switchTab('dashboard');
+        }
+
+        function renderRiwayat() {
+            let dt = document.getElementById('filter-date').value;
+            let tb = document.getElementById('tb-riwayat');
+            tb.innerHTML = '';
+            
+            let filtered = db.absensi.filter(a => a.Tanggal === dt);
+            if(filtered.length === 0) {
+                tb.innerHTML = '<tr><td colspan="5" style="text-align:center;">Tidak ada catatan absensi pada tanggal ini.</td></tr>';
+                return;
+            }
+
+            filtered.forEach(a => {
+                tb.innerHTML += `
+                    <tr>
+                        <td>${a.Nama}</td>
+                        <td>${a.Kelas}</td>
+                        <td><span class="badge badge-${a.Status}">${a.Status}</span></td>
+                        <td>${a.Keterangan || '-'}</td>
+                        <td>${a.GuruPiket}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function exportCSV() {
+            if(db.absensi.length === 0) { alert("Belum ada data absensi untuk diunduh!"); return; }
+            let csv = 'IDCatatan,Tanggal,Waktu,Kelas,NIS,Nama,Status,Keterangan,GuruPiket\n';
+            db.absensi.forEach(a => {
+                csv += `"${a.IDCatatan}","${a.Tanggal}","${a.Waktu}","${a.Kelas}","${a.NIS}","${a.Nama}","${a.Status}","${a.Keterangan}","${a.GuruPiket}"\n`;
+            });
+            let blob = new Blob([csv], { type: 'text/csv' });
+            let url = window.URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `Laporan_Absensi_SIAP5_${new Date().toISOString().split('T')[0]}.csv`);
+            a.click();
+        }
+
+        function saveGASUrl() {
+            let url = document.getElementById('gas-url').value.trim();
+            localStorage.setItem('siap_gas_url', url);
+            alert("URL Backend disimpan! Menghubungkan ulang...");
+            initData();
+        }
+
+        function resetToDemo() {
+            localStorage.removeItem('siap_gas_url');
+            localStorage.removeItem('siap_absensi');
+            document.getElementById('gas-url').value = '';
+            loadDemoData();
+            alert("Sistem kembali menggunakan data DEMO Lokal.");
+        }
+    </script>
+</body>
+</html>
